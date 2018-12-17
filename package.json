@@ -18,7 +18,8 @@
     "URI": "ws://localhost",
     "PORT": 8080,
     "USERNAME": "",
-    "PASSWORD": ""
+    "PASSWORD": "",
+    "FOLDER": "./tmp"
   },
   "scripts": {
     "server": "node server.js",

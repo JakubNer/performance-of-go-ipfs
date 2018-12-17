@@ -55,6 +55,9 @@ function doFiles(createOpcode, readOpcode, updateOpcode, deleteOpcode, deferred)
     sendFn(updateOpcode, fileI, CONTENTS_UPDATED[fileI]);    
   }
   for (var fileI = 0; fileI < FILES_IN_BURST; fileI++) {
+    sendFn(readOpcode, fileI, new Uint8Array());        
+  }
+  for (var fileI = 0; fileI < FILES_IN_BURST; fileI++) {
     sendFn(deleteOpcode, fileI, new Uint8Array());            
   }
 
@@ -74,10 +77,15 @@ const cb = function(cb){
 let suite = new Benchmark.Suite()
 
 suite
-.add('memory-only', {
-  defer: true,
-  fn: function(deferred) {
-    doFiles(OPCODES.MEMORY_CREATE, OPCODES.MEMORY_READ, OPCODES.MEMORY_UPDATE, OPCODES.MEMORY_DELETE, deferred);
+  .add('store-to-memory', {
+    defer: true,
+    fn: function(deferred) {
+      doFiles(OPCODES.MEMORY_CREATE, OPCODES.MEMORY_READ, OPCODES.MEMORY_UPDATE, OPCODES.MEMORY_DELETE, deferred);
+  }})
+  .add('store-to-filesystem', {
+    defer: true,
+    fn: function(deferred) {
+      doFiles(OPCODES.FILE_CREATE, OPCODES.FILE_READ, OPCODES.FILE_UPDATE, OPCODES.FILE_DELETE, deferred);
   }})
 
   // add listeners
@@ -134,9 +142,14 @@ suite
       throw new Error('NOT OK from server');
     }
 
-    if (opcode == 0) {
+    if (opcode == OPCODES.NOTIFY_DEFERRED) {
       let view = new DataView(buf.slice(143,147));
       deferrals[view.getUint32(0)].resolve();
+    } else if ([OPCODES.MEMORY_READ, OPCODES.FILE_READ, OPCODES.IPFS_READ].includes(opcode)) {
+      let firstByte = view.getUint8(143);
+      if (firstByte != CONTENTS_CREATED[index][0] && firstByte != CONTENTS_UPDATED[index][0]) {
+        throw new Error('returned contents disagrees');
+      }
     }
   };
 

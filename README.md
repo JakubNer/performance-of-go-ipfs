@@ -23,6 +23,7 @@ The configuration can be set using environment variables or using `npm config` c
 | PORT | connection port | 8888 |
 | USERNAME | basic-auth credential enforced by server.js |  |
 | PASSWORD | basic-auth credential enforced by server.js |  |
+| FOLDER | temp file folder for filesystem tests | ./tmp |
 
 # Running Benchmark
 
