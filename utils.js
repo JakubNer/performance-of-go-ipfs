@@ -1,15 +1,25 @@
-// source: http://stackoverflow.com/a/11058858
+// @returns {string} from ArrayBuffer (null terminator respected)
 function ab2str(buf) {
-  return String.fromCharCode.apply(null, new Uint16Array(buf));
+  var charBuf = new Uint16Array(buf);
+  var length = charBuf.length;
+  for (var i = 0; i < length; i++) {
+    if (charBuf[i] == 0) {
+      length = i;
+      break;
+    }
+  }
+  return (String.fromCharCode.apply(null, charBuf)).slice(0,length);
 }
 
-// source: http://stackoverflow.com/a/11058858
+// @param {string} str - string to convert to null terminated ArrayBuffer
+// @returns {ArrayBuffer} that's null terminated: 0-character == end of string
 function str2ab(str) {
-  var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+  var buf = new ArrayBuffer((str.length + 1) * 2); // 2 bytes for each char
   var bufView = new Uint16Array(buf);
   for (var i = 0, strLen = str.length; i < strLen; i++) {
     bufView[i] = str.charCodeAt(i);
   }
+  bufView[i] = 0;
   return buf;
 }
 

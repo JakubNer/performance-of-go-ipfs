@@ -50,8 +50,9 @@ const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD
     var view = new DataView(buf);
     var opcode = view.getUint8(0);
     var index = view.getUint32(129);
-    var random = utils.buf2hex(buf.slice(133,143));
+    var reserved = utils.buf2hex(buf.slice(133,143));
+    var reservedStr = utils.ab2str(buf.slice(133,143)); 
     var payload = utils.ab2str(buf.slice(143));
-    console.log(`GOT: ${opcode} ${index} ${random} ${payload}`);
+    console.log(`GOT: ${opcode} ${index} ${reserved}/${reservedStr} ${payload}`);
   };
 })();

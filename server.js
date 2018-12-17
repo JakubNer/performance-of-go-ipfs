@@ -15,6 +15,31 @@ const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD
 
 const TOKEN = crypto.createHash('sha256').update(USERNAME + PASSWORD, 'utf-8').digest('hex');
 
+let OPCODES = {
+  REPEAT: 0,
+  MEMORY_CREATE: 1,
+  MEMORY_READ: 2,
+  MEMORY_UPDATE: 3,
+  MEMORY_DELETE: 4,
+  FILE_CREATE: 5,
+  FILE_READ: 6,
+  FILE_UPDATE: 7,
+  FILE_DELETE: 8,
+  IPFS_CREATE: 9,
+  IPFS_READ: 10,
+  IPFS_UPDATE: 11,
+  IPFS_DELETE: 12
+};
+
+/*** mem storage utils ***/
+var mem_files = {};
+
+/*** file storage utils ***/
+
+/*** ipfs storage utils ***/
+
+/*** server ***/
+
 app.use(function(request, response, next) {
   var user = BasicAuth(request);
   debug('request made (method:%s)(headers:%o)(path:%s)', request.method, request.headers, request.path);
@@ -51,23 +76,59 @@ wss.on('connection', function connection(ws) {
 
     var view = new DataView(buf);
     var opcode = view.getUint8(0);
+    var index = view.getUint32(129);
     var token = utils.ab2str(buf.slice(1,129));
+    var payload = buf.slice(143);
+    debug(`rcv: opcode:${opcode}`);
 
     if (token !== TOKEN) {
       console.log('invalid token in WS message');
       return;
     }
-  
+
+    let result = new Uint8Array(buf.slice(0,143)); // truncate to header
+    result.set(new Uint8Array(utils.str2ab('OK')),133); // shove OK in there
+
     switch(opcode) {
-      case 0: // repeat back
-        debug(`GOT repeat`);
-        ws.send(new Uint8Array(buf), (err) => {
-          debug(`ack: ${err}`);
-        });
+
+      case OPCODES.REPEAT:
+        debug(`GOT repeat payload:${utils.buf2hex(payload)}`);       
+        result = [...result,...new Uint8Array(buf.slice(143))]; // append message contents
         break;
+
+      case OPCODES.MEMORY_CREATE:
+        debug(`GOT MEMORY_CREATE`);
+        mem_files[index] = payload;
+        result.set(new Uint8Array(utils.str2ab('OK')),133); // shove OK in there
+        break;
+
+      case OPCODES.MEMORY_READ:
+        debug(`GOT MEMORY_READ`);
+        result.set(new Uint8Array(utils.str2ab('OK')),133); // shove OK in there
+        result = [...result,...new Uint8Array(mem_files[index])]; // append file contents
+        break;
+
+      case OPCODES.MEMORY_UPDATE:
+        debug(`GOT MEMORY_UPDATE`);
+        mem_files[index] = payload;
+        result.set(new Uint8Array(utils.str2ab('OK')),133); // shove OK in there
+        break;
+
+      case OPCODES.MEMORY_DELETE:
+        debug(`GOT MEMORY_DELETE`);
+        delete mem_files[index];
+        result.set(new Uint8Array(utils.str2ab('OK')),133); // shove OK in there
+        break;
+
       default:
         debug(`invalid message opcode ${opcode}`);
-    }
+        result.set(new Uint8Array(utils.str2ab('NOTOK')),133); // shove NOTOK in there
+      }
+
+    ws.send(result, (err) => {
+      debug(`ack: ${err ? err : ''}`);
+    });
+
   });
 });
 
