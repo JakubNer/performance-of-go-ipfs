@@ -10,6 +10,7 @@
     "benchmark": "2.1.4",
     "debug": "4.1.0",
     "express": "4.16.4",
+    "ipfs-api": "26.1.2",
     "isomorphic-ws": "4.0.1",
     "node-fetch": "2.3.0",
     "ws": "6.1.2"
@@ -19,11 +20,14 @@
     "PORT": 8080,
     "USERNAME": "",
     "PASSWORD": "",
-    "FOLDER": "./tmp"
+    "FOLDER": "./tmp",
+    "IPFS_HOST": "localhost",
+    "IPFS_PORT": "5001"
   },
   "scripts": {
     "server": "node server.js",
     "client": "node client.js",
-    "benchmark": "node driver.js"
+    "benchmark": "node driver.js",
+    "compose": "docker-compose run -d --service-ports test-service"
   }
 }

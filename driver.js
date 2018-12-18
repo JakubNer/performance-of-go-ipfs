@@ -8,8 +8,8 @@ const PORT = process.env.PORT || process.env.npm_package_config_PORT || 8888;
 const USERNAME = process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
 const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
 
-const FILES_IN_BURST = 1;
-const NUM_BYTES = 1024;
+const FILES_IN_BURST = 10;
+const NUM_BYTES = 10*1024*1024;
 
 let CONTENTS_CREATED = [];
 let CONTENTS_UPDATED = [];
@@ -86,6 +86,11 @@ suite
     defer: true,
     fn: function(deferred) {
       doFiles(OPCODES.FILE_CREATE, OPCODES.FILE_READ, OPCODES.FILE_UPDATE, OPCODES.FILE_DELETE, deferred);
+  }})
+  .add('store-to-ipfs', {
+    defer: true,
+    fn: function(deferred) {
+      doFiles(OPCODES.IPFS_CREATE, OPCODES.IPFS_READ, OPCODES.IPFS_UPDATE, OPCODES.IPFS_DELETE, deferred);
   }})
 
   // add listeners

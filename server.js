@@ -5,6 +5,7 @@ let crypto = require('crypto');
 let fs = require("fs");
 let { promisify } = require("util");
 let path = require('path');
+let ipfsApi = require('ipfs-api');
 let utils = require('./utils.js');
 let wsServer = require('ws').Server;
 let server = require('http').createServer();
@@ -15,7 +16,9 @@ let app = express();
 const PORT = process.env.PORT || process.env.npm_package_config_PORT || 8888;
 const USERNAME = process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
 const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
-const FOLDER = process.env.npm_package_config_FOLDER || process.env.FOLDER || './tmp';
+const FOLDER = process.env.npm_package_config_FOLDER || process.env.FOLDER || null
+const IPFS_HOST = process.env.npm_package_config_IPFS_HOST || process.env.IPFS_HOST || null;
+const IPFS_PORT = process.env.npm_package_config_IPFS_PORT || process.env.IPFS_PORT || null;
 
 const TOKEN = crypto.createHash('sha256').update(USERNAME + PASSWORD, 'utf-8').digest('hex');
 
@@ -44,6 +47,7 @@ const readFile = promisify(fs.readFile);
 const unlink = promisify(fs.unlink);
 
 /*** ipfs storage utils ***/
+const ipfs = ipfsApi(IPFS_HOST, IPFS_PORT, {protocol: 'http'});
 
 /*** server ***/
 
@@ -148,7 +152,7 @@ wss.on('connection', function connection(ws) {
         try {
           await writeFile(filename, Buffer.from(payload));
         } catch (err) {
-          debug(`can't write file ${filename}`);
+          debug(`can't write file ${filename}: ${err}`);
           result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
         }
         break;
@@ -160,7 +164,7 @@ wss.on('connection', function connection(ws) {
           let data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
           result = new Uint8Array([...result,...data]); // append file contents
         } catch (err) {
-          debug(`can't read file ${filename}`);
+          debug(`can't read file ${filename}: ${err}`);
           result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
         }
         break;
@@ -170,7 +174,7 @@ wss.on('connection', function connection(ws) {
         try {
           await writeFile(filename, Buffer.from(payload));
         } catch (err) {
-          debug(`can't update file ${filename}`);
+          debug(`can't update file ${filename}: ${err}`);
           result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
         }
         break;
@@ -180,7 +184,49 @@ wss.on('connection', function connection(ws) {
         try {
           await unlink(filename);
         } catch (err) {
-          debug(`can't delete file ${filename}`);
+          debug(`can't delete file ${filename}: ${err}`);
+          result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
+        }
+        break;
+
+      case OPCODES.IPFS_CREATE:
+        debug(`GOT IPFS_CREATE`);
+        try {
+          await ipfs.files.write(`/${index}`, Buffer.from(payload), {create:true});
+        } catch (err) {
+          debug(`can't write file /${index}: ${err}`);
+          result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
+        }
+        break;
+
+      case OPCODES.IPFS_READ:
+        debug(`GOT IPFS_READ`);
+        try {
+          let buffer = await ipfs.files.read(`/${index}`);
+          let data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+          result = new Uint8Array([...result,...data]); // append file contents
+        } catch (err) {
+          debug(`can't read file /${index}: ${err}`);
+          result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
+        }
+        break;
+
+      case OPCODES.IPFS_UPDATE:
+        debug(`GOT IPFS_UPDATE`);
+        try {
+          await ipfs.files.write(`/${index}`, Buffer.from(payload), {create:true});
+        } catch (err) {
+          debug(`can't update file /${index}: ${err}`);
+          result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
+        }
+        break;
+
+      case OPCODES.IPFS_DELETE:
+        debug(`GOT IPFS_DELETE`);
+        try {
+          await ipfs.files.rm(`/${index}`);
+        } catch (err) {
+          debug(`can't delete file /${index}: ${err}`);
           result.set(new Uint8Array(utils.str2ab('BAD')),133); // shove BAD in there            
         }
         break;

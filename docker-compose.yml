@@ -1,0 +1,28 @@
+version: '3'
+services:
+  test-service:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    image: test-service
+    container_name: test-service
+    volumes:
+    - tmp:/home/node/app/tmp
+    environment:
+    - IPFS_HOST=ipfs
+    ports:
+    - "8888:8888"
+    links:
+    - ipfs
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    volumes:
+    - ipfs:/data/ipfs
+    environment:
+    - IPFS_PROFILE=test
+    ports:
+    - "5001:5001"
+    container_name: ipfs
+volumes:
+  ipfs:
+  tmp:
