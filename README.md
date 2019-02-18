@@ -49,20 +49,25 @@ Choose a node in your cluster and select+taint it:
 
 ```
 kubectl label nodes $NODE app=performance-of-go-ipfs
-kubectl taint nodes $NODE app=performance-of-go-ipfs:NoExecute
+kubectl taint nodes $NODE app=performance-of-go-ipfs:NoSchedule
 ```
 
-That should evict all other deployments and make the node available for these tests.
+Then manually evict all other pods on that node in the "default" namespace: we want to avoid messing with *DaemonSets* in other namespaces (e.g. *kube-system*).
 
-Deploy: `kubectl apply -f k8/deploy.yaml`
+When you're done performance testing remove the taint from the node: `kubectl taint nodes $NODE app:NoSchedule-`
 
-The default `k8/deploy.yaml` uses host mounts for data.
+Note that deployment requires *kustomize* [https://github.com/kubernetes-sigs/kustomize](https://github.com/kubernetes-sigs/kustomize).
+
+To deploy: `kustomize build k8/host | kubectl apply -f -`
+
+The default `k8/host` deployment uses host mounts for data.
 
 > ASIDE: 
 > 
 > * to get into *server.js* container: `kubectl exec -it $POD --container test-server -- /bin/sh`
 > * to get into the IPFS container: `kubectl exec -it $POD --container go-ipfs -- /bin/sh`
 > * to see IPFS swarm advertised addresses `ipfs dht findpeer $HASH` where *$HASH* is peer ID of node, see also `ipfs id`
+> * to see logs from the *test-server*: `kubectl logs deployment/performance-of-go-ipfs --container test-server -f`
 >
 > Where *$POD* is the name of your *performance-of-go-ipfs* pod using `kubectl get pods`
 
@@ -77,11 +82,18 @@ Where *$POD* is the name of your *performance-of-go-ipfs* pod using `kubectl get
 
 > ASIDE:
 >
-> To run the performance tests against *Digital Ocean*'s persistent volumes patch in the `k8/do-mount.yaml`: 
+> To run the performance tests against *Digital Ocean*'s persistent volumes patch in the `k8/digitalocean` *kustomization*: 
 >
+> `kustomize build k8/digitalocean | kubectl apply -f -`
+>
+> in *bash*:
 > ```
-> kubectl apply -f k8/do-claims.yaml
 > kubectl patch deployment performance-of-go-ipfs --patch "$(cat k8/do-mount.yaml)"
+> ```
+> 
+> in *PowerShell*:
+> ```
+> kubectl patch deployment performance-of-go-ipfs --patch "$((cat k8/do-mount.yaml) -join ""`n"")"
 > ```
 
 # Results

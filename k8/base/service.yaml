@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: performance-of-go-ipfs-service
+  labels:
+    app: performance-of-go-ipfs
+spec:
+  type: NodePort
+  ports:
+    - port: 32001
+      nodePort: 32001
+      protocol: TCP
+  selector:
+    app: performance-of-go-ipfs  

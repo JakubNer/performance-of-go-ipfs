@@ -22,9 +22,10 @@ spec:
         args:
         - sed -i -e "s|\"/ip4/0.0.0.0/tcp/4001\"|\"/ip4/0.0.0.0/tcp/32001\",\"/ip4/$(wget -qO- ifconfig.me/ip)/tcp/32001\"|g" /data/ipfs/config;
           sed -i -e 's|/ip6/::/tcp/4001|/ip6/::/tcp/32001|g' /data/ipfs/config;
+          mkdir -p /data/test-server;
         volumeMounts:
-         - name: ipfs
-           mountPath: /data/ipfs
+         - name: test-server-data
+           mountPath: /data
       containers:
       - name: test-server
         image: jakubner/test-server:latest
@@ -34,7 +35,7 @@ spec:
         - containerPort: 8888
         env:
         - name: DEBUG
-          value: server*
+          value: 
         - name: USERNAME
           value: adam
         - name: PASSWORD
@@ -43,9 +44,11 @@ spec:
           value: localhost
         - name: IPFS_PORT
           value: "5001"
+        - name: FOLDER
+          value: /data/test-server
         volumeMounts:
-         - name: test-server-tmp
-           mountPath: /home/node/app/tmp
+         - name: test-server-data
+           mountPath: /data
       - name: go-ipfs
         image: ipfs/go-ipfs:latest
         imagePullPolicy: Always
@@ -58,8 +61,8 @@ spec:
         - containerPort: 5001
         - containerPort: 8080
         volumeMounts:
-         - name: ipfs
-           mountPath: /data/ipfs
+         - name: test-server-data
+           mountPath: /data
       imagePullSecrets:
       - name: regcred          
       nodeSelector:
@@ -68,28 +71,4 @@ spec:
       - key: "app"
         operator: "Equal"
         value: "performance-of-go-ipfs"
-        effect: "NoExecute"      
-      volumes:
-      - hostPath:
-          path: /data/test-server-tmp
-        name: test-server-tmp
-      - hostPath:
-          path: /data/ipfs
-        name: ipfs
-
----
-  
-kind: Service
-apiVersion: v1
-metadata:
-  name: performance-of-go-ipfs-service
-  labels:
-    app: performance-of-go-ipfs
-spec:
-  type: NodePort
-  ports:
-    - port: 32001
-      nodePort: 32001
-      protocol: TCP
-  selector:
-    app: performance-of-go-ipfs  
+        effect: "NoSchedule"      

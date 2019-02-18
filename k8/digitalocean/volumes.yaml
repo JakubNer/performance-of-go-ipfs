@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: performance-of-go-ipfs
+  labels:
+    app: performance-of-go-ipfs
+spec:
+  template:
+    metadata:
+      name: performance-of-go-ipfs
+      labels:
+        app: performance-of-go-ipfs
+    spec:
+      volumes:
+      - name: test-server-data
+        persistentVolumeClaim:
+          claimName: test-server-data-pvc

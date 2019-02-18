@@ -1,0 +1,6 @@
+bases:
+- ../base
+resources:
+- claim.yaml
+patches:
+- volumes.yaml
