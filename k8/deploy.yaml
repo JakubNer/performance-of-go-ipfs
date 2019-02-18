@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: performance-of-go-ipfs
+  labels:
+    app: performance-of-go-ipfs
+spec:
+  selector:
+    matchLabels:
+      app: performance-of-go-ipfs
+  replicas: 1
+  template:
+    metadata:
+      name: performance-of-go-ipfs
+      labels:
+        app: performance-of-go-ipfs
+    spec:
+      initContainers:
+      - name: mod-go-ipfs-config
+        image: busybox
+        command: ["sh", "-c"]
+        args:
+        - sed -i -e "s|\"/ip4/0.0.0.0/tcp/4001\"|\"/ip4/0.0.0.0/tcp/32001\",\"/ip4/$(wget -qO- ifconfig.me/ip)/tcp/32001\"|g" /data/ipfs/config;
+          sed -i -e 's|/ip6/::/tcp/4001|/ip6/::/tcp/32001|g' /data/ipfs/config;
+        volumeMounts:
+         - name: ipfs
+           mountPath: /data/ipfs
+      containers:
+      - name: test-server
+        image: jakubner/test-server:latest
+        imagePullPolicy: Always
+        command:
+        ports:
+        - containerPort: 8888
+        env:
+        - name: USERNAME
+          value: adam
+        - name: PASSWORD
+          value: c0c0nut
+        - name: IPFS_HOST
+          value: localhost
+        - name: IPFS_PORT
+          value: "5001"
+        volumeMounts:
+         - name: test-server-tmp
+           mountPath: /home/node/app/tmp
+      - name: go-ipfs
+        image: ipfs/go-ipfs:latest
+        imagePullPolicy: Always
+        command:
+        env:
+        - name: IPFS_PROFILE
+          value: server
+        ports:
+        - containerPort: 32001
+        - containerPort: 5001
+        - containerPort: 8080
+        volumeMounts:
+         - name: ipfs
+           mountPath: /data/ipfs
+      imagePullSecrets:
+      - name: regcred          
+      nodeSelector:
+        app: performance-of-go-ipfs
+      tolerations:
+      - key: "app"
+        operator: "Equal"
+        value: "performance-of-go-ipfs"
+        effect: "NoExecute"      
+      volumes:
+      - hostPath:
+          path: /data/test-server-tmp
+        name: test-server-tmp
+      - hostPath:
+          path: /data/ipfs
+        name: ipfs
+
+---
+  
+kind: Service
+apiVersion: v1
+metadata:
+  name: performance-of-go-ipfs-service
+  labels:
+    app: performance-of-go-ipfs
+spec:
+  type: NodePort
+  ports:
+    - port: 32001
+      nodePort: 32001
+      protocol: TCP
+  selector:
+    app: performance-of-go-ipfs  

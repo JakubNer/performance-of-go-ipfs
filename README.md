@@ -35,6 +35,55 @@ The configuration can be set using environment variables or using `npm config` c
 
 `npm run benchmark`
 
+## With Kubernetes
+
+Build, Tag, Push: 
+
+```
+npm run build
+npm run tag
+npm run push
+```
+
+Choose a node in your cluster and select+taint it: 
+
+```
+kubectl label nodes $NODE app=performance-of-go-ipfs
+kubectl taint nodes $NODE app=performance-of-go-ipfs:NoExecute
+```
+
+That should evict all other deployments and make the node available for these tests.
+
+Deploy: `kubectl apply -f k8/deploy.yaml`
+
+The default `k8/deploy.yaml` uses host mounts for data.
+
+> ASIDE: 
+> 
+> * to get into *server.js* container: `kubectl exec -it $POD --container test-server -- /bin/sh`
+> * to get into the IPFS container: `kubectl exec -it $POD --container go-ipfs -- /bin/sh`
+> * to see IPFS swarm advertised addresses `ipfs dht findpeer $HASH` where *$HASH* is peer ID of node, see also `ipfs id`
+>
+> Where *$POD* is the name of your *performance-of-go-ipfs* pod using `kubectl get pods`
+
+Open port-forwarding to your pod for running tests and looking at IPFS UI:
+
+```
+kubectl port-forward $POD 8080:8080
+kubectl port-forward $POD 5001:5001
+```
+
+Where *$POD* is the name of your *performance-of-go-ipfs* pod using `kubectl get pods`
+
+> ASIDE:
+>
+> To run the performance tests against *Digital Ocean*'s persistent volumes patch in the `k8/do-mount.yaml`: 
+>
+> ```
+> kubectl apply -f k8/do-claims.yaml
+> kubectl patch deployment performance-of-go-ipfs --patch "$(cat k8/do-mount.yaml)"
+> ```
+
 # Results
 
 All runs on my laptop running Windows 10 with Docker in VirtualBox.

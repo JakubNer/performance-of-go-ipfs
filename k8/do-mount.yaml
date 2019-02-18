@@ -1,0 +1,11 @@
+spec:
+  template:
+    spec:
+      volumes:
+      - name: tmp
+        persistentVolumeClaim:
+          claimName: tmp-pvc
+      - name: ipfs
+        persistentVolumeClaim:
+          claimName: ipfs-pvc
+
