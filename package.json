@@ -28,7 +28,7 @@
     "server": "node server.js",
     "client": "node client.js",
     "benchmark": "node driver.js",
-    "compose": "docker-compose run -d --service-ports test-service",
+    "compose": "docker-compose run -d --service-ports test-server",
     "build": "docker build -t test-server -f Dockerfile .",
     "tag": "docker tag test-server:latest jakubner/test-server:latest",
     "push": "docker push jakubner/test-server:latest"

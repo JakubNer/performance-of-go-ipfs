@@ -3,13 +3,24 @@ const WebSocket = require('isomorphic-ws')
 const fetch = require('node-fetch');
 const utils = require('./utils.js');
 
-const URI = process.env.URI || process.env.npm_package_config_URI || 'ws://localhost';
-const PORT = process.env.PORT || process.env.npm_package_config_PORT || 8888;
-const USERNAME = process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
-const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
+const URI = process.env.URI || process.env.npm_config_URI || process.env.npm_package_config_URI || 'ws://localhost';
+const PORT = process.env.PORT || process.env.npm_config_PORT || process.env.npm_package_config_PORT || 8888;
+const USERNAME = process.env.npm_config_USERNAME || process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
+const PASSWORD = process.env.npm_config_PASSWORD || process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
+
+if (process.argv.length != 3 || ! /^(1B|1KiB|1MiB|10MiB)$/.test(process.argv[2])) {
+  console.log('run using `npm run benchrmark` with 1 additional argument exactly matching: "1B", "1KiB", "1MiB", or "10MiB"');
+  process.exit(-1);
+}
 
 const FILES_IN_BURST = 10;
-const NUM_BYTES = 10*1024*1024;
+const SIZE_OF_RUN = process.argv[2];
+const NUM_BYTES = {
+  '1B': 1,
+  '1KiB': 1*1024,
+  '1MiB': 1*1024*1024,
+  '10MiB': 10*1024*1024}[SIZE_OF_RUN];
+console.log('Run for size: ' + SIZE_OF_RUN);  
 
 let CONTENTS_CREATED = [];
 let CONTENTS_UPDATED = [];

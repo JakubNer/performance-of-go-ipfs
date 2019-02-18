@@ -13,12 +13,12 @@ let express = require('express');
 let debug = require('debug')('server')
 let app = express();
 
-const PORT = process.env.PORT || process.env.npm_package_config_PORT || 8888;
-const USERNAME = process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
-const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
-const FOLDER = process.env.npm_package_config_FOLDER || process.env.FOLDER || null
-const IPFS_HOST = process.env.npm_package_config_IPFS_HOST || process.env.IPFS_HOST || null;
-const IPFS_PORT = process.env.npm_package_config_IPFS_PORT || process.env.IPFS_PORT || null;
+const PORT = process.env.PORT || process.env.npm_config_PORT || process.env.npm_package_config_PORT || 8888;
+const USERNAME = process.env.npm_config_USERNAME || process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
+const PASSWORD = process.env.npm_config_PASSWORD || process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
+const FOLDER = process.env.npm_config_FOLDER || process.env.npm_package_config_FOLDER || process.env.FOLDER || null
+const IPFS_HOST = process.env.npm_config_IPFS_HOST || process.env.npm_package_config_IPFS_HOST || process.env.IPFS_HOST || null;
+const IPFS_PORT = process.env.npm_config_IPFS_PORT || process.env.npm_package_config_IPFS_PORT || process.env.IPFS_PORT || null;
 
 const TOKEN = crypto.createHash('sha256').update(USERNAME + PASSWORD, 'utf-8').digest('hex');
 
@@ -99,6 +99,28 @@ wss.on('connection', function connection(ws) {
     }
   });
 
+  /**
+   * Responds with:
+   * 
+   *  | *syntax *    | *bytes*      | *value*              |
+   *  | ---          | ---          | ---                  |
+   *  | opcode       | 1            | see switch statement |
+   *  | token        | 128          | from /getToken http  |
+   *  | index        | 4            |                      |
+   *  | reserved     | 10           |                      |
+   *  | payload      | len(payload) | data                 |
+   *
+   * 
+   * @param {*} message 
+   * 
+   *  | *syntax *    | *bytes*      | *value*                  |
+   *  | ---          | ---          | ---                      |
+   *  | opcode       | 1            | see OPCODES in driver.js |
+   *  | token        | 128          | from /getToken http      |
+   *  | index        | 4            | message sequence index   |
+   *  | reserved     | 10           |                          |
+   *  | payload      | len(payload) | data                     |
+   */
   var handler = async (message) => {
     let buf = message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength)
     debug(`rcv: ${buf.byteLength} bytes`);

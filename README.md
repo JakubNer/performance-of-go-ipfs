@@ -69,7 +69,7 @@ The default `k8/deploy.yaml` uses host mounts for data.
 Open port-forwarding to your pod for running tests and looking at IPFS UI:
 
 ```
-kubectl port-forward $POD 8080:8080
+kubectl port-forward $POD 8888:8888
 kubectl port-forward $POD 5001:5001
 ```
 

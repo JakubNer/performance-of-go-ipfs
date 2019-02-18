@@ -1,0 +1,7 @@
+URI=ws://localhost
+PORT=8888
+USERNAME=adam
+PASSWORD=c0c0nut
+FOLDER=./tmp
+IPFS_HOST=localhost
+IPFS_PORT=5001

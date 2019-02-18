@@ -2,10 +2,10 @@ const WebSocket = require('isomorphic-ws')
 const fetch = require('node-fetch');
 const utils = require('./utils.js');
 
-const URI = process.env.URI || process.env.npm_package_config_URI || 'ws://localhost';
-const PORT = process.env.PORT || process.env.npm_package_config_PORT || 8888;
-const USERNAME = process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
-const PASSWORD = process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
+const URI = process.env.URI || process.env.npm_config_URI || process.env.npm_package_config_URI || 'ws://localhost';
+const PORT = process.env.PORT || process.env.npm_config_PORT || process.env.npm_package_config_PORT || 8888;
+const USERNAME = process.env.npm_config_USERNAME || process.env.npm_package_config_USERNAME || process.env.USERNAME || null;
+const PASSWORD = process.env.npm_config_PASSWORD || process.env.npm_package_config_PASSWORD || process.env.PASSWORD || null;
 
 (async () => {
   let url = URI.replace(/^ws/g,'http') + ':' + PORT + '/getToken';
