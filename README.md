@@ -98,7 +98,7 @@ Where *$POD* is the name of your *performance-of-go-ipfs* pod using `kubectl get
 
 # Results
 
-All runs on my laptop running Windows 10 with Docker in VirtualBox.
+## Runs with *test-server* and *go-ipfs* in Docker (Win10/VirtualBox) and *driver.js* on laptop host
 
 ```
 -- 10 burst x 1B (run 1)
@@ -149,6 +149,105 @@ For 1 byte and 1 kibibyte values IPFS is an order of magnitude slower than stori
 For 1 Mebibyte  values IPFS is half the speed of memory storage and slightly slower than storing on the OS file system.
 
 For 10 Mebibyte values the choice of storage seems insignificant with respect to the Websocket overhead.
+
+## Runs with *test-server* and *go-ipfs* on Kubernetes node (1vCPU/2GiB mem) on *DigitalOcean* and *driver.js* on laptop client
+
+* regardless if *host moutned* or using *persistent mount*, all metrics are very close and are a wash
+* for 1 byte *store-to-filesystem* is a wash whether using *host mount* or *persistent volume mount*
+* for 1KiB *persistent volume mount* outperformed *host mount*, but again, it's really a wash
+* at 1MiB network delays are the limiter so storage medium is immaterial
+
+### Writing to Host Mount
+
+```
+Run for size: 1B
+connected
+store-to-memory x 21.73 ops/sec ±5.85% (55 runs sampled)
+store-to-filesystem x 16.27 ops/sec ±4.08% (49 runs sampled)
+store-to-ipfs x 2.89 ops/sec ±52.42% (27 runs sampled)
+fastest :: store-to-memory
+
+Run for size: 1B
+connected
+store-to-memory x 20.60 ops/sec ±7.21% (52 runs sampled)
+store-to-filesystem x 19.30 ops/sec ±6.23% (49 runs sampled)
+store-to-ipfs x 3.58 ops/sec ±61.19% (32 runs sampled)
+fastest :: store-to-memory
+
+Run for size: 1KiB
+connected
+store-to-memory x 9.24 ops/sec ±6.53% (46 runs sampled)
+store-to-filesystem x 8.38 ops/sec ±12.23% (43 runs sampled)
+store-to-ipfs x 2.00 ops/sec ±59.14% (23 runs sampled)
+fastest :: store-to-memory,store-to-filesystem
+
+Run for size: 1KiB
+connected
+store-to-memory x 8.77 ops/sec ±9.95% (44 runs sampled)
+store-to-filesystem x 9.47 ops/sec ±5.59% (49 runs sampled)
+store-to-ipfs x 3.04 ops/sec ±58.21% (26 runs sampled)
+fastest :: store-to-filesystem,store-to-memory
+
+Run for size: 1MiB
+connected
+store-to-memory x 0.04 ops/sec ±15.58% (5 runs sampled)
+store-to-filesystem x 0.04 ops/sec ±19.28% (5 runs sampled)
+store-to-ipfs x 0.04 ops/sec ±36.09% (5 runs sampled)
+fastest :: store-to-memory,store-to-filesystem,store-to-ipfs
+
+Run for size: 1MiB
+connected
+store-to-memory x 0.04 ops/sec ±37.31% (5 runs sampled)
+store-to-filesystem x 0.03 ops/sec ±41.52% (5 runs sampled)
+store-to-ipfs x 0.03 ops/sec ±58.72% (5 runs sampled)
+fastest :: store-to-memory,store-to-ipfs,store-to-filesystem
+```
+
+### Writing to Persistent Volume Mount
+
+```
+Run for size: 1B
+connected
+store-to-memory x 19.68 ops/sec ±10.67% (54 runs sampled)
+store-to-filesystem x 19.04 ops/sec ±4.15% (51 runs sampled)
+store-to-ipfs x 1.08 ops/sec ±74.60% (13 runs sampled)
+fastest :: store-to-filesystem
+
+Run for size: 1B
+connected
+store-to-memory x 15.95 ops/sec ±17.58% (42 runs sampled)
+store-to-filesystem x 16.84 ops/sec ±4.47% (56 runs sampled)
+store-to-ipfs x 3.62 ops/sec ±43.99% (28 runs sampled)
+fastest :: store-to-filesystem
+
+Run for size: 1KiB
+connected
+store-to-memory x 10.26 ops/sec ±6.74% (50 runs sampled)
+store-to-filesystem x 9.55 ops/sec ±3.53% (49 runs sampled)
+store-to-ipfs x 2.94 ops/sec ±68.46% (28 runs sampled)
+fastest :: store-to-memory,store-to-filesystem
+
+Run for size: 1KiB
+connected
+store-to-memory x 9.66 ops/sec ±8.07% (48 runs sampled)
+store-to-filesystem x 9.10 ops/sec ±5.43% (46 runs sampled)
+store-to-ipfs x 2.95 ops/sec ±69.93% (29 runs sampled)
+fastest :: store-to-memory,store-to-filesystem
+
+Run for size: 1MiB
+connected
+store-to-memory x 0.03 ops/sec ±29.54% (5 runs sampled)
+store-to-filesystem x 0.04 ops/sec ±13.34% (5 runs sampled)
+store-to-ipfs x 0.04 ops/sec ±6.88% (5 runs sampled)
+fastest :: store-to-ipfs,store-to-filesystem
+
+Run for size: 1MiB
+connected
+store-to-memory x 0.04 ops/sec ±11.56% (5 runs sampled)
+store-to-filesystem x 0.04 ops/sec ±18.97% (5 runs sampled)
+store-to-ipfs x 0.04 ops/sec ±24.58% (5 runs sampled)
+fastest :: store-to-filesystem,store-to-memory,store-to-ipfs
+```
 
 # Running Dev Server Locally
 
