@@ -66,6 +66,7 @@ The default `k8/host` deployment uses host mounts for data.
 > 
 > * to get into *server.js* container: `kubectl exec -it $POD --container test-server -- /bin/sh`
 > * to get into the IPFS container: `kubectl exec -it $POD --container go-ipfs -- /bin/sh`
+>     * view size of */data*: `du -h -s`
 > * to see IPFS swarm advertised addresses `ipfs dht findpeer $HASH` where *$HASH* is peer ID of node, see also `ipfs id`
 > * to see logs from the *test-server*: `kubectl logs deployment/performance-of-go-ipfs --container test-server -f`
 >
