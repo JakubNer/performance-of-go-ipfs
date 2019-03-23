@@ -78,6 +78,10 @@ kubectl port-forward $POD 8888:8888
 kubectl port-forward $POD 5001:5001
 ```
 
+> ASIDE:
+>
+> * go into IPFS webui:  `http://localhost:5001/webui`
+
 Where *$POD* is the name of your *performance-of-go-ipfs* pod using `kubectl get pods`
 
 > ASIDE:
